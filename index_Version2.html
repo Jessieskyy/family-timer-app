@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Temporizador de Comida y Quehaceres</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Fredoka One', cursive;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+    }
+    video#bgVideo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -2;
+    }
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      z-index: -1;
+      pointer-events: none;
+    }
+    h1, h2 {
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 0.5em;
+      border-radius: 10px;
+      margin: 1em auto 0.5em;
+      display: inline-block;
+    }
+    button {
+      font-size: 2em;
+      padding: 1em 2em;
+      margin: 1em;
+      border-radius: 20px;
+      border: none;
+      background-color: #ff6f91;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 111, 145, 0.6);
+    }
+    button:hover:not(:disabled) {
+      transform: scale(1.1);
+      background-color: #ff355e;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      background-color: #bb5966 !important;
+      box-shadow: none !important;
+    }
+    .counter {
+      font-size: 1.4em;
+      margin-top: 1em;
+      color: #ffe6ec;
+      background-color: rgba(0, 0, 0, 0.4);
+      display: inline-block;
+      padding: 0.5em 1em;
+      border-radius: 10px;
+    }
+    #estado {
+      font-size: 2em;
+      animation: pulse 1.5s infinite;
+      color: #ffffff;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <video autoplay muted loop id="bgVideo">
+    <source src="anime_cooking.mp4" type="video/mp4" />
+    Tu navegador no soporta videos.
+  </video>
+  <div id="overlay"></div>
+
+  <h1>¿Quién está prendiendo el temporizador?</h1>
+  <div id="botones">
+    <button onclick="startTimer('Dadiva')">Dadiva</button>
+    <button onclick="startTimer('Cypher')">Cypher</button>
+    <button onclick="startTimer('Harbinjer')">Harbinjer</button>
+  </div>
+
+  <h2 id="estado">💤 Esperando...</h2>
+  <div class="counter" id="conteos">🍽️ Comidas hoy - Dadiva: 0 | Cypher: 0 | Harbinjer: 0</div>
+
+  <audio id="bling" src="hazelnut_cheesecake.mp3" preload="auto"></audio>
+
+  <script>
+    const webhookURL = "https://script.google.com/macros/s/AKfycbwEAvbhZK0GKHK3HZJCDPxEnxwQnHzHompnEXgx_p4Gsrot6HZtIMg3BNNBkOBMGCDb/exec";
+
+    let counts = { Dadiva: 0, Cypher: 0, Harbinjer: 0 };
+    let interval;
+    let currentChild = null;
+    let isEating = true;
+    let timerRunning = false;
+
+    function updateCountDisplay() {
+      document.getElementById("conteos").innerHTML =
+        `🍽️ Comidas hoy - Dadiva: ${counts.Dadiva} | Cypher: ${counts.Cypher} | Harbinjer: ${counts.Harbinjer}`;
+    }
+
+    function disableButtons() {
+      document.querySelectorAll("#botones button").forEach((btn) => {
+        btn.disabled = true;
+      });
+    }
+
+    function enableButtons() {
+      const botonesDiv = document.getElementById("botones");
+      botonesDiv.innerHTML = `
+        <button onclick="startTimer('Dadiva')">Dadiva</button>
+        <button onclick="startTimer('Cypher')">Cypher</button>
+        <button onclick="startTimer('Harbinjer')">Harbinjer</button>
+      `;
+    }
+
+    function logPoints(nombre, tipo, puntos) {
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, tipo, puntos }),
+      }).catch((e) => {
+        console.error("Error sending points:", e);
+      });
+    }
+
+    function startTimer(nombre) {
+      if (timerRunning) return;
+
+      timerRunning = true;
+      currentChild = nombre;
+      counts[nombre]++;
+      updateCountDisplay();
+
+      logPoints(nombre, "Temporizador - Comida", 2);
+
+      isEating = true;
+      document.getElementById("apagarBtn")?.remove();
+      disableButtons();
+
+      startCountdown(30 * 60, "🍕 ¡Tiempo de comer!");
+    }
+
+    function startCountdown(seconds, label) {
+      clearInterval(interval);
+      interval = setInterval(() => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById("estado").innerText = `${label} ⏰ ${mins}:${secs
+          .toString()
+          .padStart(2, "0")}`;
+
+        if (seconds <= 0) {
+          clearInterval(interval);
+          document.getElementById("estado").innerText = "🔔 Espera...";
+          const alarm = document.getElementById("bling");
+          alarm.loop = true;
+          alarm.play();
+
+          if (isEating) {
+            setTimeout(() => {
+              isEating = false;
+              logPoints(currentChild, "Temporizador - Quehaceres", 0);
+              startCountdown(30 * 60, "🧹 ¡A limpiar!");
+            }, 30000);
+          } else {
+            showStopButton();
+          }
+        }
+        seconds--;
+      }, 1000);
+    }
+
+    function showStopButton() {
+      const stopBtn = document.createElement("button");
+      stopBtn.innerText = "🔴 Apagar alarma";
+      stopBtn.id = "apagarBtn";
+      stopBtn.style.backgroundColor = "#d00000";
+      stopBtn.onclick = () => {
+        document.getElementById("bling").pause();
+        document.getElementById("bling").currentTime = 0;
+        resetScreen();
+      };
+      document.getElementById("botones").innerHTML = "";
+      document.getElementById("botones").appendChild(stopBtn);
+      document.getElementById("estado").innerText = "⏹️ Toca para apagar y reiniciar";
+    }
+
+    function resetScreen() {
+      enableButtons();
+      document.getElementById("estado").innerText = "💤 Esperando...";
+      timerRunning = false;
+      currentChild = null;
+    }
+
+    updateCountDisplay();
+  </script>
+</body>
+</html>
