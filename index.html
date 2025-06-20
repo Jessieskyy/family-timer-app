@@ -133,8 +133,11 @@
       fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, tipo, puntos }),
-      }).catch((e) => {
+        body: JSON.stringify({ nombre, tipo, puntos })
+      })
+      .then(response => response.text())
+      .then(data => console.log("Webhook Response:", data))
+      .catch((e) => {
         console.error("Error sending points:", e);
       });
     }
@@ -161,9 +164,8 @@
       interval = setInterval(() => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        document.getElementById("estado").innerText = `${label} ⏰ ${mins}:${secs
-          .toString()
-          .padStart(2, "0")}`;
+        document.getElementById("estado").innerText =
+          `${label} ⏰ ${mins}:${secs.toString().padStart(2, "0")}`;
 
         if (seconds <= 0) {
           clearInterval(interval);
