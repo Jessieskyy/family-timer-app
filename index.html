@@ -101,7 +101,7 @@
   <audio id="bling" src="hazelnut_cheesecake.mp3" preload="auto"></audio>
 
   <script>
-   const webhookURL = "https://script.google.com/macros/s/AKfycbz0Kdjvfk7Ww8vzH-0WM5DwIvXHZPqtUmgULW4Uh1tGpCOLtXaYm8S7q9jUF35gA-hVcw/exec";
+    const webhookURL = "https://script.google.com/macros/s/AKfycbz0Kdjvfk7Ww8vzH-0WM5DwIvXHZPqtUmgULW4Uh1tGpCOLtXaYm8S7q9jUF35gA-hVcw/exec";
 
     let counts = { Dadiva: 0, Cypher: 0, Harbinjer: 0 };
     let interval;
@@ -136,10 +136,8 @@
         body: JSON.stringify({ nombre, tipo, puntos })
       })
       .then(response => response.text())
-      .then(data => console.log("Webhook Response:", data))
-      .catch((e) => {
-        console.error("Error sending points:", e);
-      });
+      .then(data => console.log("✅ Webhook response:", data))
+      .catch(e => console.error("❌ Error sending points:", e));
     }
 
     function startTimer(nombre) {
