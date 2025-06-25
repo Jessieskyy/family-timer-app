@@ -82,6 +82,7 @@
   </style>
 </head>
 <body>
+  <!-- Background video -->
   <video autoplay muted loop id="bgVideo">
     <source src="anime_cooking.mp4" type="video/mp4" />
     Tu navegador no soporta videos.
@@ -98,19 +99,17 @@
   <h2 id="estado">💤 Esperando...</h2>
   <div class="counter" id="conteos">Comidas hoy - Dadiva: 0 | Cypher: 0 | Harbinjer: 0</div>
 
+  <!-- Alarm sound -->
   <audio id="bling" src="hazelnut_cheesecake.mp3" preload="auto"></audio>
 
   <script>
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfkGu1in-FuB7sU4-H2TycvmaDxZ0IYvIGVMlolaw5i4_77Xw/formResponse";
+
     let counts = { Dadiva: 0, Cypher: 0, Harbinjer: 0 };
     let interval;
     let currentChild = null;
     let isEating = true;
     let timerRunning = false;
-
-    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeH_cUDuwqQlFCWm9Q7IfMdSGiJrDgNf8o_oKw4NDzU5zLZlg/formResponse";
-    const nombreEntry = "entry.1746944518";
-    const tipoEntry = "entry.2082593830";
-    const puntosEntry = "entry.1800870217";
 
     function updateCountDisplay() {
       document.getElementById("conteos").innerHTML =
@@ -118,9 +117,7 @@
     }
 
     function disableButtons() {
-      document.querySelectorAll("#botones button").forEach((btn) => {
-        btn.disabled = true;
-      });
+      document.querySelectorAll("#botones button").forEach(btn => btn.disabled = true);
     }
 
     function enableButtons() {
@@ -133,19 +130,16 @@
     }
 
     function logPoints(nombre, tipo, puntos) {
-      const formData = new URLSearchParams();
-      formData.append(nombreEntry, nombre);
-      formData.append(tipoEntry, tipo);
-      formData.append(puntosEntry, puntos);
+      const data = new URLSearchParams();
+      data.append("entry.511948436", nombre);
+      data.append("entry.736720763", tipo);
+      data.append("entry.763907111", puntos);
 
       fetch(formUrl, {
         method: "POST",
         mode: "no-cors",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: formData.toString()
-      }).catch(err => console.warn("❌ Error sending to Google Form:", err));
+        body: data
+      }).then(() => console.log("✅ Logged:", nombre, tipo, puntos));
     }
 
     function startTimer(nombre) {
@@ -185,7 +179,7 @@
               isEating = false;
               logPoints(currentChild, "Temporizador - Quehaceres", 0);
               startCountdown(30 * 60, "🧹 ¡A limpiar!");
-            }, 30000);
+            }, 30000); // wait 30 seconds
           } else {
             showStopButton();
           }
@@ -196,7 +190,7 @@
 
     function showStopButton() {
       const stopBtn = document.createElement("button");
-      stopBtn.innerText = "Apagar alarma";
+      stopBtn.innerText = "🔴 Apagar alarma";
       stopBtn.id = "apagarBtn";
       stopBtn.style.backgroundColor = "#d00000";
       stopBtn.onclick = () => {
