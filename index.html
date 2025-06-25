@@ -96,22 +96,25 @@
   </div>
 
   <h2 id="estado">💤 Esperando...</h2>
-  <div class="counter" id="conteos">🍽️ Comidas hoy - Dadiva: 0 | Cypher: 0 | Harbinjer: 0</div>
+  <div class="counter" id="conteos">Comidas hoy - Dadiva: 0 | Cypher: 0 | Harbinjer: 0</div>
 
   <audio id="bling" src="hazelnut_cheesecake.mp3" preload="auto"></audio>
 
   <script>
-    const webhookURL = "https://script.google.com/macros/s/AKfycbz0Kdjvfk7Ww8vzH-0WM5DwIvXHZPqtUmgULW4Uh1tGpCOLtXaYm8S7q9jUF35gA-hVcw/exec";
-
     let counts = { Dadiva: 0, Cypher: 0, Harbinjer: 0 };
     let interval;
     let currentChild = null;
     let isEating = true;
     let timerRunning = false;
 
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeH_cUDuwqQlFCWm9Q7IfMdSGiJrDgNf8o_oKw4NDzU5zLZlg/formResponse";
+    const nombreEntry = "entry.1746944518";
+    const tipoEntry = "entry.2082593830";
+    const puntosEntry = "entry.1800870217";
+
     function updateCountDisplay() {
       document.getElementById("conteos").innerHTML =
-        `🍽️ Comidas hoy - Dadiva: ${counts.Dadiva} | Cypher: ${counts.Cypher} | Harbinjer: ${counts.Harbinjer}`;
+        `Comidas hoy - Dadiva: ${counts.Dadiva} | Cypher: ${counts.Cypher} | Harbinjer: ${counts.Harbinjer}`;
     }
 
     function disableButtons() {
@@ -130,14 +133,19 @@
     }
 
     function logPoints(nombre, tipo, puntos) {
-      fetch(webhookURL, {
+      const formData = new URLSearchParams();
+      formData.append(nombreEntry, nombre);
+      formData.append(tipoEntry, tipo);
+      formData.append(puntosEntry, puntos);
+
+      fetch(formUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, tipo, puntos })
-      })
-      .then(response => response.text())
-      .then(data => console.log("✅ Webhook response:", data))
-      .catch(e => console.error("❌ Error sending points:", e));
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+      }).catch(err => console.warn("❌ Error sending to Google Form:", err));
     }
 
     function startTimer(nombre) {
@@ -188,7 +196,7 @@
 
     function showStopButton() {
       const stopBtn = document.createElement("button");
-      stopBtn.innerText = "🔴 Apagar alarma";
+      stopBtn.innerText = "Apagar alarma";
       stopBtn.id = "apagarBtn";
       stopBtn.style.backgroundColor = "#d00000";
       stopBtn.onclick = () => {
