@@ -96,13 +96,14 @@
     <button onclick="startTimer('Harbinjer')">Harbinjer</button>
   </div>
 
-  <h2 id="estado">💤 Esperando...</h2>
+  <h2 id="estado">Esperando...</h2>
   <div class="counter" id="conteos">Comidas hoy - Dadiva: 0 | Cypher: 0 | Harbinjer: 0</div>
 
   <!-- Alarm sound -->
   <audio id="bling" src="hazelnut_cheesecake.mp3" preload="auto"></audio>
 
   <script>
+    // Google Form POST URL for point logging
     const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfkGu1in-FuB7sU4-H2TycvmaDxZ0IYvIGVMlolaw5i4_77Xw/formResponse";
 
     let counts = { Dadiva: 0, Cypher: 0, Harbinjer: 0 };
@@ -111,15 +112,18 @@
     let isEating = true;
     let timerRunning = false;
 
+    // Update points display (no emojis)
     function updateCountDisplay() {
       document.getElementById("conteos").innerHTML =
         `Comidas hoy - Dadiva: ${counts.Dadiva} | Cypher: ${counts.Cypher} | Harbinjer: ${counts.Harbinjer}`;
     }
 
+    // Disable all buttons while timer runs
     function disableButtons() {
       document.querySelectorAll("#botones button").forEach(btn => btn.disabled = true);
     }
 
+    // Enable buttons after timer resets
     function enableButtons() {
       const botonesDiv = document.getElementById("botones");
       botonesDiv.innerHTML = `
@@ -129,6 +133,7 @@
       `;
     }
 
+    // Submit points via Google Form POST
     function logPoints(nombre, tipo, puntos) {
       const data = new URLSearchParams();
       data.append("entry.511948436", nombre);
@@ -139,9 +144,11 @@
         method: "POST",
         mode: "no-cors",
         body: data
-      }).then(() => console.log("✅ Logged:", nombre, tipo, puntos));
+      }).then(() => console.log("✅ Logged:", nombre, tipo, puntos))
+        .catch(e => console.error("❌ Error logging points:", e));
     }
 
+    // Start timer for a child, increment count, log points for eating time
     function startTimer(nombre) {
       if (timerRunning) return;
 
@@ -156,9 +163,10 @@
       document.getElementById("apagarBtn")?.remove();
       disableButtons();
 
-      startCountdown(30 * 60, "🍕 ¡Tiempo de comer!");
+      startCountdown(30 * 60, "Tiempo de comer");
     }
 
+    // Countdown function, triggers alarm and next phase
     function startCountdown(seconds, label) {
       clearInterval(interval);
       interval = setInterval(() => {
@@ -178,8 +186,8 @@
             setTimeout(() => {
               isEating = false;
               logPoints(currentChild, "Temporizador - Quehaceres", 0);
-              startCountdown(30 * 60, "🧹 ¡A limpiar!");
-            }, 30000); // wait 30 seconds
+              startCountdown(30 * 60, "A limpiar");
+            }, 30000); // 30-second wait before chore timer
           } else {
             showStopButton();
           }
@@ -188,9 +196,10 @@
       }, 1000);
     }
 
+    // Show stop alarm button, reset on click
     function showStopButton() {
       const stopBtn = document.createElement("button");
-      stopBtn.innerText = "🔴 Apagar alarma";
+      stopBtn.innerText = "Apagar alarma";
       stopBtn.id = "apagarBtn";
       stopBtn.style.backgroundColor = "#d00000";
       stopBtn.onclick = () => {
@@ -200,12 +209,13 @@
       };
       document.getElementById("botones").innerHTML = "";
       document.getElementById("botones").appendChild(stopBtn);
-      document.getElementById("estado").innerText = "⏹️ Toca para apagar y reiniciar";
+      document.getElementById("estado").innerText = "Toca para apagar y reiniciar";
     }
 
+    // Reset buttons and status for new timer start
     function resetScreen() {
       enableButtons();
-      document.getElementById("estado").innerText = "💤 Esperando...";
+      document.getElementById("estado").innerText = "Esperando...";
       timerRunning = false;
       currentChild = null;
     }
